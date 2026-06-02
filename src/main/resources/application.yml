@@ -1,0 +1,53 @@
+server:
+  port: 8080
+
+spring:
+  # Redis 配置
+  redis:
+    host: 192.168.10.109
+    port: 6379
+    password:
+    timeout: 5000ms
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+
+# AI 大模型配置（本地 Ollama 部署，完全免费）
+ai:
+  model:
+    # 本地 Ollama API 地址
+    base-url: http://localhost:11434/v1
+    # Ollama 不需要真实 key，随便填
+    api-key: ollama
+    # 本地模型：qwen2.5:3b
+    model-name: qwen2.5:3b
+    # 温度参数
+    temperature: 0.7
+    # 最大输出 token 数
+    max-tokens: 2048
+
+  # Embedding 向量模型配置（本地 Ollama 部署的 bge-m3）
+  embedding:
+    base-url: http://localhost:11434/v1
+    api-key: ollama
+    model-name: bge-m3
+
+  # RAG 知识库配置（使用本地 Ollama bge-m3 向量检索）
+  rag:
+    # 知识库文件路径（classpath 下）
+    knowledge-path: knowledge/tuling-knowledge.txt
+    # 文本分块大小
+    chunk-size: 500
+    # 分块重叠大小
+    chunk-overlap: 50
+    # 检索返回的最相关文档数
+    max-results: 3
+
+  # 限流配置
+  rate-limit:
+    # 每个 IP 每分钟最大请求数
+    max-requests-per-minute: 10
+    # 限流窗口（秒）
+    window-seconds: 60
