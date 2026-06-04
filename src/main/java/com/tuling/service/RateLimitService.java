@@ -26,7 +26,7 @@ public class RateLimitService {
     @Value("${ai.rate-limit.window-seconds}")
     private int windowSeconds;
 
-    @Autowired
+    @Autowired(required = false)
     private StringRedisTemplate stringRedisTemplate;
 
     /**
@@ -36,6 +36,10 @@ public class RateLimitService {
      * @return true = 请求被允许，false = 已达到限流阈值
      */
     public boolean isAllowed(String clientId) {
+        // Redis 不可用时降级放行
+        if (stringRedisTemplate == null) {
+            return true;
+        }
         String key = RATE_LIMIT_PREFIX + clientId;
         try {
             // 获取当前计数
@@ -69,6 +73,10 @@ public class RateLimitService {
      * @return 剩余请求数
      */
     public int getRemainingRequests(String clientId) {
+        // Redis 不可用时返回最大可用数
+        if (stringRedisTemplate == null) {
+            return maxRequestsPerMinute;
+        }
         String key = RATE_LIMIT_PREFIX + clientId;
         try {
             String countStr = stringRedisTemplate.opsForValue().get(key);

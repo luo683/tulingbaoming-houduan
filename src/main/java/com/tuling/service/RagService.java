@@ -46,7 +46,7 @@ public class RagService {
     @Autowired
     private EmbeddingModel embeddingModel;
 
-    @Autowired
+    @Autowired(required = false)
     private StringRedisTemplate stringRedisTemplate;
 
     /**
@@ -55,43 +55,45 @@ public class RagService {
     private final List<DocumentChunk> documentChunks = new ArrayList<>();
 
     /**
-     * 应用启动时加载知识库并向量化（使用本地 Ollama bge-m3）
+     * 应用启动时异步加载知识库并向量化（不阻塞启动）
      */
     @PostConstruct
     public void init() {
-        try {
-            log.info("开始加载知识库: {}", knowledgePath);
-            String content = loadKnowledgeFile();
-            if (content == null || content.trim().isEmpty()) {
-                log.warn("知识库文件为空，跳过 RAG 初始化");
-                return;
-            }
-
-            // 分块
-            List<String> chunks = splitIntoChunks(content);
-            log.info("知识库分块完成，共 {} 个文本块，开始向量化（本地 Ollama bge-m3）...", chunks.size());
-
-            // 向量化并存储
-            for (int i = 0; i < chunks.size(); i++) {
-                String chunk = chunks.get(i);
-                try {
-                    Embedding embedding = embeddingModel.embed(chunk).content();
-                    float[] vector = embedding.vector();
-
-                    // 存储到内存
-                    documentChunks.add(new DocumentChunk(chunk, vector, i));
-
-                    // 同时存储到 Redis（持久化）
-                    storeToRedis(i, chunk, vector);
-                } catch (Exception e) {
-                    log.warn("文本块 {} 向量化失败: {}", i, e.getMessage());
+        new Thread(() -> {
+            try {
+                log.info("开始加载知识库: {}", knowledgePath);
+                String content = loadKnowledgeFile();
+                if (content == null || content.trim().isEmpty()) {
+                    log.warn("知识库文件为空，跳过 RAG 初始化");
+                    return;
                 }
-            }
 
-            log.info("RAG 知识库初始化完成，成功向量化 {} 个文本块", documentChunks.size());
-        } catch (Exception e) {
-            log.error("RAG 知识库初始化失败: {}", e.getMessage(), e);
-        }
+                // 分块
+                List<String> chunks = splitIntoChunks(content);
+                log.info("知识库分块完成，共 {} 个文本块，开始向量化（本地 Ollama bge-m3）...", chunks.size());
+
+                // 向量化并存储
+                for (int i = 0; i < chunks.size(); i++) {
+                    String chunk = chunks.get(i);
+                    try {
+                        Embedding embedding = embeddingModel.embed(chunk).content();
+                        float[] vector = embedding.vector();
+
+                        // 存储到内存
+                        documentChunks.add(new DocumentChunk(chunk, vector, i));
+
+                        // 同时存储到 Redis（持久化）
+                        storeToRedis(i, chunk, vector);
+                    } catch (Exception e) {
+                        log.warn("文本块 {} 向量化失败: {}", i, e.getMessage());
+                    }
+                }
+
+                log.info("RAG 知识库初始化完成，成功向量化 {} 个文本块", documentChunks.size());
+            } catch (Exception e) {
+                log.error("RAG 知识库初始化失败: {}", e.getMessage(), e);
+            }
+        }, "rag-init").start();
     }
 
     /**
@@ -188,6 +190,7 @@ public class RagService {
      * 将向量存储到 Redis
      */
     private void storeToRedis(int index, String text, float[] vector) {
+        if (stringRedisTemplate == null) return;
         try {
             String vectorStr = Arrays.toString(vector);
             stringRedisTemplate.opsForValue().set(REDIS_VECTOR_PREFIX + index, vectorStr);

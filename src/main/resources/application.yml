@@ -2,17 +2,36 @@ server:
   port: 8080
 
 spring:
-  # Redis 配置
+  # MySQL 数据源
+  datasource:
+    url: jdbc:mysql://localhost:3306/turing?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    username: root
+    password: caitao522
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  # JPA 自动建表
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        format_sql: true
+
+  # Redis 配置（可选 — 不可用时服务自动降级）
   redis:
-    host: 192.168.10.109
-    port: 6379
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
     password:
-    timeout: 5000ms
+    timeout: 2000ms
+    connect-timeout: 2000ms
     lettuce:
       pool:
         max-active: 8
         max-idle: 8
         min-idle: 0
+      shutdown-timeout: 100ms
 
 # AI 大模型配置（本地 Ollama 部署，完全免费）
 ai:
@@ -21,8 +40,8 @@ ai:
     base-url: http://localhost:11434/v1
     # Ollama 不需要真实 key，随便填
     api-key: ollama
-    # 本地模型：qwen2.5:3b
-    model-name: qwen2.5:3b
+    # 本地模型：llama3:8b（已安装）
+    model-name: llama3:8b
     # 温度参数
     temperature: 0.7
     # 最大输出 token 数
@@ -32,7 +51,7 @@ ai:
   embedding:
     base-url: http://localhost:11434/v1
     api-key: ollama
-    model-name: bge-m3
+    model-name: llama3:8b
 
   # RAG 知识库配置（使用本地 Ollama bge-m3 向量检索）
   rag:

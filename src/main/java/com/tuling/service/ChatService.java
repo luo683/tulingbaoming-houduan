@@ -58,7 +58,7 @@ public class ChatService {
     @Autowired
     private RagService ragService;
 
-    @Autowired
+    @Autowired(required = false)
     private StringRedisTemplate stringRedisTemplate;
 
     /**
@@ -189,6 +189,7 @@ public class ChatService {
      * 刷新会话 TTL（使用 Redis 管理会话过期）
      */
     private void refreshSessionTTL(String sessionId) {
+        if (stringRedisTemplate == null) return;
         try {
             String key = "chat:session:" + sessionId;
             stringRedisTemplate.opsForValue().set(key, "active", SESSION_TTL_MINUTES, TimeUnit.MINUTES);
@@ -202,10 +203,12 @@ public class ChatService {
      */
     public void clearMemory(String sessionId) {
         sessionMemory.remove(sessionId);
-        try {
-            stringRedisTemplate.delete("chat:session:" + sessionId);
-        } catch (Exception e) {
-            log.warn("Redis 会话删除失败: {}", e.getMessage());
+        if (stringRedisTemplate != null) {
+            try {
+                stringRedisTemplate.delete("chat:session:" + sessionId);
+            } catch (Exception e) {
+                log.warn("Redis 会话删除失败: {}", e.getMessage());
+            }
         }
         log.info("会话 {} 记忆已清除", sessionId);
     }
