@@ -36,7 +36,7 @@ public class Project {
     @Column(name = "star_count", nullable = false)
     private int starCount = 0;
 
-    @Column(length = 10)
+    @Column(length = 20)
     private String status;
 
     @Column(name = "created_at", updatable = false)

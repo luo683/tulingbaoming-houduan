@@ -6,7 +6,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/turing?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
     username: root
-    password: caitao522
+    password: 1234
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   # JPA 自动建表
@@ -33,27 +33,27 @@ spring:
         min-idle: 0
       shutdown-timeout: 100ms
 
-# AI 大模型配置（本地 Ollama 部署，完全免费）
+# AI 大模型配置（硅基流动 SiliconFlow 免费模型）
 ai:
   model:
-    # 本地 Ollama API 地址
-    base-url: http://localhost:11434/v1
-    # Ollama 不需要真实 key，随便填
-    api-key: ollama
-    # 本地模型：llama3:8b（已安装）
-    model-name: llama3:8b
+    # 硅基流动 API 地址
+    base-url: https://api.siliconflow.cn/v1
+    # 硅基流动 API Key
+    api-key: ${SILICONFLOW_API_KEY:}
+    # 文本生成模型：Qwen2.5-7B-Instruct
+    model-name: Qwen/Qwen2.5-7B-Instruct
     # 温度参数
     temperature: 0.7
     # 最大输出 token 数
     max-tokens: 2048
 
-  # Embedding 向量模型配置（本地 Ollama 部署的 bge-m3）
+  # Embedding 向量模型配置（硅基流动 BAAI/bge-m3）
   embedding:
-    base-url: http://localhost:11434/v1
-    api-key: ollama
-    model-name: llama3:8b
+    base-url: https://api.siliconflow.cn/v1
+    api-key: ${SILICONFLOW_API_KEY:}
+    model-name: BAAI/bge-m3
 
-  # RAG 知识库配置（使用本地 Ollama bge-m3 向量检索）
+  # RAG 知识库配置（使用硅基流动 BAAI/bge-m3 向量检索）
   rag:
     # 知识库文件路径（classpath 下）
     knowledge-path: knowledge/tuling-knowledge.txt

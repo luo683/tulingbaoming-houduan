@@ -22,19 +22,17 @@ INSERT INTO faqs (question, answer, author, sort_order) VALUES
 ('AI 辅助编程会不会让人变菜？','善用则利，滥用则废。建议先自己写，再让 AI review；而不是让 AI 写，你再改。','李四',7);
 
 -- Resources
-INSERT INTO resources (title,description,category,file_type,file_size,link,extract_code,status) VALUES
-('Rust 所有权与借用 — 入门讲义','从内存安全角度理解 Rust 最核心的所有权系统','讲座讲义','PDF','2.3MB','https://pan.baidu.com/s/example1','turs','published'),
-('机器学习入门：线性回归的数学推导','包含 PPT 课件和推导手稿扫描版','讲座讲义','PDF + PPTX','8.7MB','https://pan.baidu.com/s/example2','turs','published'),
-('Linux 进程调度深度解析','CFS 调度器源码分析，包含内核代码注释版','讲座讲义','PDF','3.1MB','https://pan.baidu.com/s/example3',NULL,'published'),
-('前端性能优化实战分享','Web Vitals 指标详解，含 Lighthouse 实操手册','讲座讲义','PDF','5.4MB','https://pan.baidu.com/s/example4','turs','published'),
-('简易关系型数据库源码（C 语言）','支持基本 SQL 子集的玩具数据库，约 800 行 C 代码','代码项目','ZIP','156KB','https://github.com/example/simple-db',NULL,'published'),
-('学社官网源码','基于 VitePress + Vue 3 构建','代码项目','GitHub','','https://github.com/example/turing-website',NULL,'published'),
-('ACM 竞赛模板库','图论、动态规划、字符串等标准算法模板','代码项目','ZIP','420KB','https://pan.baidu.com/s/example5','turs','published'),
-('ICPC 历年真题精选（2019-2025）','整理自 ICPC 亚洲区域赛和 World Finals 真题','竞赛资料','PDF','12.4MB','https://pan.baidu.com/s/example6','turs','published'),
-('蓝桥杯历年省赛真题 + 题解','覆盖 C/C++、Java、Python 组','竞赛资料','文件夹','45MB','https://pan.baidu.com/s/example7','turs','published'),
-('CS 自学指南（学社推荐书单）','覆盖算法、操作系统、网络、编译原理、AI 五大方向','学习资料','PDF','1.1MB','https://pan.baidu.com/s/example9',NULL,'published'),
-('Git 协作开发最佳实践','面向新手的 Git 工作流指南','学习资料','PDF','2.8MB','https://pan.baidu.com/s/example10',NULL,'published'),
-('LaTeX 学术写作模板','课程报告、毕业论文、学术海报模板合集','学习资料','ZIP','3.2MB','https://pan.baidu.com/s/example11','turs','published');
+INSERT INTO resources (title,description,category,file_type,file_size,link,extract_code,like_count,status) VALUES
+('尚硅谷嵌入式技术之Linux应用层开发','尚硅谷嵌入式技术之Linux应用层开发完整教程资料','嵌入式','网盘','-','https://pan.baidu.com/s/1cTvaAvMbnwHzfqfUrtbN-Q?pwd=8h8e','8h8e',0,'published'),
+('嵌入式面试技巧','嵌入式方向面试技巧整理与经验分享','嵌入式','网盘','-','https://pan.baidu.com/s/1F9B4_wcA3lRQIJR8TjQrtQ?pwd=9iav','9iav',0,'published'),
+('千锋教育C++课件','千锋教育C++完整课件资料','编程语言','网盘','-','https://pan.baidu.com/s/1apRP9D5YjLmCj_dtRD5jfQ?pwd=rtvp','rtvp',0,'published'),
+('Docker学习资料','Docker容器技术学习资料合集','DevOps','网盘','-','https://pan.baidu.com/s/1v7eJfmmZNLxaFVLDSzN0TA','sfcc',0,'published'),
+('51单片机资料','51单片机入门与进阶学习资料','嵌入式','网盘','-','https://pan.baidu.com/s/1aNuz7TUEUqAqiZhWa3GNLw?pwd=vs7i','vs7i',0,'published'),
+('Ubuntu镜像源','Ubuntu系统镜像源文件','操作系统','网盘','-','https://pan.baidu.com/s/1YSOTkFGoPCoYPYTLjc1KSA','jsb8',0,'published'),
+('软考相关资料：软件设计师和嵌入式设计师','软考软件设计师与嵌入式系统设计师考试复习资料','考证','网盘','-','https://pan.baidu.com/s/1zvIc48fFhOBb9j0GpEFsiw?pwd=u1n7','u1n7',0,'published'),
+('JVM调优','Java虚拟机性能调优学习资料','Java','网盘','-','https://pan.baidu.com/s/1NtKAdMoKc9LsExLGd8a2Gg','n6n8',0,'published'),
+('大模型学习资料','AI大模型（LLM）学习资料合集','AI/ML','网盘','-','https://pan.baidu.com/s/1V4RUbmjJukuHosIUiVNlKA','cz4r',0,'published'),
+('Oracle数据库','Oracle数据库学习教程与资料','数据库','网盘','-','https://pan.baidu.com/s/1WFROdBofKjdvdsFD-dXs5w','x4qg',0,'published');
 
 -- Members
 INSERT INTO members (name,role,department,grade,bio,tags,avatar_gradient,sort_order,is_lead) VALUES
@@ -63,4 +61,5 @@ INSERT INTO projects (name,description,tech_tags,github_link,cover_emoji,member_
 ('学社官网','基于 VitePress + Vue 3 构建的社团官方网站','Vue 3,VitePress,TypeScript,GSAP','https://github.com/turing/web','🌐',4,128,'active'),
 ('ACM 训练 OJ 系统','自研在线判题系统，支持 C++/Java/Python','Spring Boot,React,Docker,MySQL','https://github.com/turing/oj','⚡',6,256,'active'),
 ('课程评价平台','匿名课程评价 + 成绩分布可视化','Python,FastAPI,Vue,PostgreSQL','https://github.com/turing/course-review','📊',3,1024,'completed'),
-('智能排课助手','基于遗传算法的自动排课工具','Python,遗传算法,Streamlit','https://github.com/turing/scheduler','📅',2,89,'maintenance');
+('智能排课助手','基于遗传算法的自动排课工具','Python,遗传算法,Streamlit','https://github.com/turing/scheduler','📅',2,89,'maintenance'),
+('终点小说网','基于微服务架构的在线小说阅读平台，支持海量小说在线阅读、全文检索、智能推荐及用户互动。采用 Spring Cloud 全家桶 + Vue3 前后端分离架构。','Vue3,Spring Cloud,MyBatis-Plus,Redis,RabbitMQ,ElasticSearch','https://github.com/turing/novel-website','📖',3,512,'active');
