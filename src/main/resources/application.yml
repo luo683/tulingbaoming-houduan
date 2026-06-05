@@ -6,7 +6,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/turing?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
     username: root
-    password: 1234
+    password:
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   # JPA 自动建表

@@ -32,7 +32,11 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<LoginResponse> register(@RequestBody LoginRequest request) {
         log.info("收到注册请求: {}", request.getUsername());
-        LoginResponse response = userService.register(request.getUsername(), request.getPassword());
+        LoginResponse response = userService.register(
+                request.getUsername(), request.getPassword(),
+                request.getCollege(), request.getStudentId(),
+                request.getMajor(), request.getGrade()
+        );
         if (response.isOk()) {
             return ResponseEntity.ok(response);
         }

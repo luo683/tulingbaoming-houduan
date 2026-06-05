@@ -7,6 +7,10 @@ public class LoginRequest {
 
     private String username;
     private String password;
+    private String college;
+    private String studentId;
+    private String major;
+    private String grade;
 
     public LoginRequest() {}
 
@@ -15,4 +19,16 @@ public class LoginRequest {
 
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
+
+    public String getCollege() { return college; }
+    public void setCollege(String college) { this.college = college; }
+
+    public String getStudentId() { return studentId; }
+    public void setStudentId(String studentId) { this.studentId = studentId; }
+
+    public String getMajor() { return major; }
+    public void setMajor(String major) { this.major = major; }
+
+    public String getGrade() { return grade; }
+    public void setGrade(String grade) { this.grade = grade; }
 }

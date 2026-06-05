@@ -34,7 +34,9 @@ public class UserService {
      * 注册新用户（默认为普通用户，管理员的 admin 账号由数据库初始化脚本创建）
      */
     @Transactional
-    public LoginResponse register(String username, String password) {
+    public LoginResponse register(String username, String password,
+                                   String college, String studentId,
+                                   String major, String grade) {
         // 校验用户名
         if (username == null || username.trim().length() < 2) {
             return LoginResponse.fail("用户名至少 2 个字符");
@@ -51,6 +53,20 @@ public class UserService {
             return LoginResponse.fail("密码至少 4 位");
         }
 
+        // 普通用户必须填写学院、学号、专业、年级
+        if (college == null || college.trim().isEmpty()) {
+            return LoginResponse.fail("请填写学院");
+        }
+        if (studentId == null || studentId.trim().isEmpty()) {
+            return LoginResponse.fail("请填写学号");
+        }
+        if (major == null || major.trim().isEmpty()) {
+            return LoginResponse.fail("请填写专业");
+        }
+        if (grade == null || grade.trim().isEmpty()) {
+            return LoginResponse.fail("请填写年级");
+        }
+
         // 检查是否已存在
         if (userRepository.existsByUsername(username.trim())) {
             return LoginResponse.fail("该用户名已被注册");
@@ -63,6 +79,10 @@ public class UserService {
         user.setRole("user");
         user.setAvatar("🧑‍🎓");
         user.setCreatedAt(LocalDateTime.now());
+        user.setCollege(college.trim());
+        user.setStudentId(studentId.trim());
+        user.setMajor(major.trim());
+        user.setGrade(grade.trim());
 
         userRepository.save(user);
         log.info("新用户注册: {}", username.trim());

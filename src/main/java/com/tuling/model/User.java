@@ -46,6 +46,22 @@ public class User {
     @Column(nullable = false)
     private boolean locked = false;
 
+    /** 学院 */
+    @Column(length = 50)
+    private String college;
+
+    /** 学号 */
+    @Column(name = "student_id", length = 30)
+    private String studentId;
+
+    /** 专业 */
+    @Column(length = 50)
+    private String major;
+
+    /** 年级 */
+    @Column(length = 20)
+    private String grade;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -90,4 +106,16 @@ public class User {
 
     public boolean isLocked() { return locked; }
     public void setLocked(boolean locked) { this.locked = locked; }
+
+    public String getCollege() { return college; }
+    public void setCollege(String college) { this.college = college; }
+
+    public String getStudentId() { return studentId; }
+    public void setStudentId(String studentId) { this.studentId = studentId; }
+
+    public String getMajor() { return major; }
+    public void setMajor(String major) { this.major = major; }
+
+    public String getGrade() { return grade; }
+    public void setGrade(String grade) { this.grade = grade; }
 }
