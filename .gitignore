@@ -13,3 +13,8 @@ Thumbs.db
 
 # Logs
 *.log
+
+# H2 local database files (runtime generated)
+/data/
+*.mv.db
+*.trace.db

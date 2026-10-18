@@ -37,9 +37,20 @@ public class Event {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "max_participants")
+    private Integer maxParticipants = 0;
+
+    @Column(name = "registration_deadline")
+    private LocalDateTime registrationDeadline;
+
+    @Column(name = "allow_registration", nullable = false)
+    private Boolean allowRegistration = true;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
+        if (maxParticipants == null) maxParticipants = 0;
+        if (allowRegistration == null) allowRegistration = true;
     }
 
     public Event() {}
@@ -72,4 +83,19 @@ public class Event {
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public Integer getMaxParticipants() { return maxParticipants; }
+    public void setMaxParticipants(Integer maxParticipants) {
+        this.maxParticipants = maxParticipants;
+    }
+
+    public LocalDateTime getRegistrationDeadline() { return registrationDeadline; }
+    public void setRegistrationDeadline(LocalDateTime registrationDeadline) {
+        this.registrationDeadline = registrationDeadline;
+    }
+
+    public Boolean getAllowRegistration() { return allowRegistration; }
+    public void setAllowRegistration(Boolean allowRegistration) {
+        this.allowRegistration = allowRegistration;
+    }
 }

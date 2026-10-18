@@ -1,17 +1,19 @@
 package com.tuling.service;
 
+import com.tuling.config.LocalCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
-
-import java.util.concurrent.TimeUnit;
 
 /**
  * 限流服务
- * 基于 Redis 实现滑动窗口限流，防止接口被滥用
+ * 基于进程内缓存实现固定窗口限流，防止接口被滥用。
+ *
+ * <p>说明：原实现依赖 Redis，但开发机没有 Redis，导致限流实际上一直是「降级放行」的
+ * 空壳，同时还刷连接异常日志。现改为 {@link LocalCache} 内存计数 ——
+ * 功能真正生效，且不依赖外部服务。
  */
 @Service
 public class RateLimitService {
@@ -26,8 +28,8 @@ public class RateLimitService {
     @Value("${ai.rate-limit.window-seconds}")
     private int windowSeconds;
 
-    @Autowired(required = false)
-    private StringRedisTemplate stringRedisTemplate;
+    @Autowired
+    private LocalCache localCache;
 
     /**
      * 检查指定客户端是否被限流
@@ -36,32 +38,19 @@ public class RateLimitService {
      * @return true = 请求被允许，false = 已达到限流阈值
      */
     public boolean isAllowed(String clientId) {
-        // Redis 不可用时降级放行
-        if (stringRedisTemplate == null) {
-            return true;
-        }
         String key = RATE_LIMIT_PREFIX + clientId;
         try {
-            // 获取当前计数
-            String countStr = stringRedisTemplate.opsForValue().get(key);
-            int currentCount = countStr == null ? 0 : Integer.parseInt(countStr);
+            long currentCount = localCache.increment(key, windowSeconds);
 
-            if (currentCount >= maxRequestsPerMinute) {
+            if (currentCount > maxRequestsPerMinute) {
                 log.warn("客户端 {} 触发限流，当前请求数: {}/{}", clientId, currentCount, maxRequestsPerMinute);
                 return false;
             }
 
-            // 增加计数
-            Long newCount = stringRedisTemplate.opsForValue().increment(key);
-            if (newCount != null && newCount == 1) {
-                // 第一次请求，设置过期时间
-                stringRedisTemplate.expire(key, windowSeconds, TimeUnit.SECONDS);
-            }
-
             return true;
         } catch (Exception e) {
-            // Redis 不可用时，放行请求（降级策略）
-            log.error("限流服务 Redis 异常，降级放行: {}", e.getMessage());
+            // 限流组件自身异常时放行，避免把业务一起拖垮
+            log.error("限流计数异常，降级放行: {}", e.getMessage());
             return true;
         }
     }
@@ -73,13 +62,9 @@ public class RateLimitService {
      * @return 剩余请求数
      */
     public int getRemainingRequests(String clientId) {
-        // Redis 不可用时返回最大可用数
-        if (stringRedisTemplate == null) {
-            return maxRequestsPerMinute;
-        }
         String key = RATE_LIMIT_PREFIX + clientId;
         try {
-            String countStr = stringRedisTemplate.opsForValue().get(key);
+            String countStr = localCache.get(key);
             int currentCount = countStr == null ? 0 : Integer.parseInt(countStr);
             return Math.max(0, maxRequestsPerMinute - currentCount);
         } catch (Exception e) {

@@ -2,36 +2,50 @@ server:
   port: 8080
 
 spring:
-  # MySQL 数据源
+  # H2 文件数据库（无需安装 MySQL，数据落在本地 ./data/turing.mv.db）
+  # 想换回 MySQL：注释掉 datasource 与 h2 两段，恢复 db/mysql 配置即可
   datasource:
-    url: jdbc:mysql://localhost:3306/turing?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
-    username: root
+    url: jdbc:h2:file:./data/turing;MODE=MySQL;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
     password:
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    driver-class-name: org.h2.Driver
 
-  # JPA 自动建表
+  # H2 控制台（浏览器访问 http://localhost:8080/h2-console）
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  # 禁用 SQL 脚本自动执行（src/main/resources 下的 *.mysql.bak 是 MySQL 语法，H2 不认）
+  # 注意：必须放在顶层 spring: 之下，放到自定义前缀（如 ai:）下面会被忽略
+  sql:
+    init:
+      mode: never
+
+  # JPA 自动建表（update = 保留已有数据，只补齐结构差异）
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: false
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQL8Dialect
+        dialect: org.hibernate.dialect.H2Dialect
         format_sql: true
 
-  # Redis 配置（可选 — 不可用时服务自动降级）
-  redis:
-    host: ${REDIS_HOST:localhost}
-    port: ${REDIS_PORT:6379}
-    password:
-    timeout: 2000ms
-    connect-timeout: 2000ms
-    lettuce:
-      pool:
-        max-active: 8
-        max-idle: 8
-        min-idle: 0
-      shutdown-timeout: 100ms
+  # 缓存改走进程内实现（com.tuling.config.LocalCache），不再依赖 Redis 服务。
+  # 需要多实例共享状态时，恢复 spring-boot-starter-data-redis 依赖并取消下面的注释。
+  # redis:
+  #   host: ${REDIS_HOST:localhost}
+  #   port: ${REDIS_PORT:6379}
+  #   password:
+  #   timeout: 2000ms
+  #   connect-timeout: 2000ms
+  #   lettuce:
+  #     pool:
+  #       max-active: 8
+  #       max-idle: 8
+  #       min-idle: 0
+  #     shutdown-timeout: 100ms
 
 # AI 大模型配置（硅基流动 SiliconFlow 免费模型）
 ai:

@@ -1,5 +1,6 @@
 package com.tuling.service;
 
+import com.tuling.config.LocalCache;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
@@ -10,14 +11,12 @@ import dev.langchain4j.model.output.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 
 /**
  * AI 聊天服务
@@ -48,7 +47,7 @@ public class ChatService {
     private static final int MAX_MEMORY_SIZE = 20;
 
     /**
-     * 会话过期时间（Redis 中的 TTL）
+     * 会话过期时间（进程内缓存中的 TTL，分钟）
      */
     private static final long SESSION_TTL_MINUTES = 30;
 
@@ -58,8 +57,8 @@ public class ChatService {
     @Autowired
     private RagService ragService;
 
-    @Autowired(required = false)
-    private StringRedisTemplate stringRedisTemplate;
+    @Autowired
+    private LocalCache localCache;
 
     /**
      * 处理流式聊天请求
@@ -101,7 +100,7 @@ public class ChatService {
                     try {
                         // 将完整的 AI 回复存入会话历史
                         addToMemory(sessionId, AiMessage.from(fullResponse.toString()));
-                        // 刷新会话在 Redis 中的过期时间
+                        // 刷新会话过期时间
                         refreshSessionTTL(sessionId);
                         // 发送完成事件
                         emitter.send(SseEmitter.event()
@@ -186,15 +185,13 @@ public class ChatService {
     }
 
     /**
-     * 刷新会话 TTL（使用 Redis 管理会话过期）
+     * 刷新会话 TTL（进程内缓存管理会话过期）
      */
     private void refreshSessionTTL(String sessionId) {
-        if (stringRedisTemplate == null) return;
         try {
-            String key = "chat:session:" + sessionId;
-            stringRedisTemplate.opsForValue().set(key, "active", SESSION_TTL_MINUTES, TimeUnit.MINUTES);
+            localCache.put("chat:session:" + sessionId, "active", SESSION_TTL_MINUTES * 60);
         } catch (Exception e) {
-            log.warn("Redis 会话 TTL 刷新失败: {}", e.getMessage());
+            log.warn("会话 TTL 刷新失败: {}", e.getMessage());
         }
     }
 
@@ -203,12 +200,10 @@ public class ChatService {
      */
     public void clearMemory(String sessionId) {
         sessionMemory.remove(sessionId);
-        if (stringRedisTemplate != null) {
-            try {
-                stringRedisTemplate.delete("chat:session:" + sessionId);
-            } catch (Exception e) {
-                log.warn("Redis 会话删除失败: {}", e.getMessage());
-            }
+        try {
+            localCache.remove("chat:session:" + sessionId);
+        } catch (Exception e) {
+            log.warn("会话缓存删除失败: {}", e.getMessage());
         }
         log.info("会话 {} 记忆已清除", sessionId);
     }

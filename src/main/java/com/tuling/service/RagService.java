@@ -2,12 +2,12 @@ package com.tuling.service;
 
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.model.embedding.EmbeddingModel;
+import com.tuling.config.LocalCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -19,17 +19,16 @@ import java.util.stream.Collectors;
 
 /**
  * RAG（检索增强生成）服务
- * 使用本地 Ollama bge-m3 向量模型进行文档向量化
- * Redis 存储向量数据实现持久化
+ * 使用 bge-m3 向量模型进行文档向量化，进程内缓存向量做检索
+ *
+ * <p>说明：原实现把向量额外写入 Redis 做持久化，但开发机没有 Redis，
+ * 每次启动都会刷一堆连接异常。现已去掉该依赖 —— 向量检索本身走内存，
+ * 进程启动时重新向量化一次即可（知识库很小，开销可接受）。
  */
 @Service
 public class RagService {
 
     private static final Logger log = LoggerFactory.getLogger(RagService.class);
-
-    private static final String REDIS_VECTOR_PREFIX = "rag:vector:";
-    private static final String REDIS_TEXT_PREFIX = "rag:text:";
-    private static final String REDIS_INDEX_KEY = "rag:index";
 
     @Value("${ai.rag.knowledge-path}")
     private String knowledgePath;
@@ -45,9 +44,6 @@ public class RagService {
 
     @Autowired
     private EmbeddingModel embeddingModel;
-
-    @Autowired(required = false)
-    private StringRedisTemplate stringRedisTemplate;
 
     /**
      * 存储文档块及其向量的内存缓存
@@ -70,20 +66,15 @@ public class RagService {
 
                 // 分块
                 List<String> chunks = splitIntoChunks(content);
-                log.info("知识库分块完成，共 {} 个文本块，开始向量化（本地 Ollama bge-m3）...", chunks.size());
+                log.info("知识库分块完成，共 {} 个文本块，开始向量化...", chunks.size());
 
-                // 向量化并存储
+                // 向量化并存入内存
                 for (int i = 0; i < chunks.size(); i++) {
                     String chunk = chunks.get(i);
                     try {
                         Embedding embedding = embeddingModel.embed(chunk).content();
                         float[] vector = embedding.vector();
-
-                        // 存储到内存
                         documentChunks.add(new DocumentChunk(chunk, vector, i));
-
-                        // 同时存储到 Redis（持久化）
-                        storeToRedis(i, chunk, vector);
                     } catch (Exception e) {
                         log.warn("文本块 {} 向量化失败: {}", i, e.getMessage());
                     }
@@ -184,21 +175,6 @@ public class RagService {
         }
 
         return chunks;
-    }
-
-    /**
-     * 将向量存储到 Redis
-     */
-    private void storeToRedis(int index, String text, float[] vector) {
-        if (stringRedisTemplate == null) return;
-        try {
-            String vectorStr = Arrays.toString(vector);
-            stringRedisTemplate.opsForValue().set(REDIS_VECTOR_PREFIX + index, vectorStr);
-            stringRedisTemplate.opsForValue().set(REDIS_TEXT_PREFIX + index, text);
-            stringRedisTemplate.opsForSet().add(REDIS_INDEX_KEY, String.valueOf(index));
-        } catch (Exception e) {
-            log.warn("向量存储到 Redis 失败: {}", e.getMessage());
-        }
     }
 
     /**

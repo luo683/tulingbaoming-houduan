@@ -9,6 +9,7 @@ public class LoginResponse {
 
     private boolean ok;
     private String error;
+    private Long id;
     private String username;
     private String role;
     private String avatar;
@@ -17,9 +18,10 @@ public class LoginResponse {
 
     public LoginResponse() {}
 
-    public static LoginResponse success(String username, String role, String avatar, String token) {
+    public static LoginResponse success(Long id, String username, String role, String avatar, String token) {
         LoginResponse r = new LoginResponse();
         r.ok = true;
+        r.id = id;
         r.username = username;
         r.role = role;
         r.avatar = avatar;
@@ -39,6 +41,9 @@ public class LoginResponse {
 
     public String getError() { return error; }
     public void setError(String error) { this.error = error; }
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }

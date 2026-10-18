@@ -88,7 +88,7 @@ public class UserService {
         log.info("新用户注册: {}", username.trim());
 
         String token = generateToken(username.trim());
-        return LoginResponse.success(username.trim(), "user", "🧑‍🎓", token);
+        return LoginResponse.success(user.getId(), username.trim(), "user", "🧑‍🎓", token);
     }
 
     /**
@@ -134,6 +134,7 @@ public class UserService {
         String token = generateToken(username.trim());
         log.info("用户 {} 登录成功", username.trim());
         return LoginResponse.success(
+                user.getId(),
                 user.getUsername(),
                 user.getRole(),
                 user.getAvatar(),
@@ -167,7 +168,7 @@ public class UserService {
         userRepository.save(user);
 
         log.info("用户 {} 修改密码成功", username);
-        return LoginResponse.success(username, user.getRole(), user.getAvatar(), "");
+        return LoginResponse.success(user.getId(), username, user.getRole(), user.getAvatar(), "");
     }
 
     /**
